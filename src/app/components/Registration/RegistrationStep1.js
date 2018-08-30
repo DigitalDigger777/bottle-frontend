@@ -1,13 +1,12 @@
 import React from 'react';
 import {render} from 'react-dom';
-import { Router } from 'react-router';
 import axios from 'axios';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
+import { Link } from 'react-router-dom';
 import Config from '../Config';
 
 import PageBottleBackground from '../PageBottleBackground/PageBottleBackground';
-
 
 const styles = {
     labelText: {
@@ -28,7 +27,7 @@ const styles = {
         width: '50%'
     }
 
-}
+};
 
 export default class Messages extends React.Component {
     constructor(props) {
@@ -48,16 +47,17 @@ export default class Messages extends React.Component {
     }
 
     next(e) {
-        console.log(this.state.tel);
+        //console.log(this.state.tel);
         const config = new Config();
-
 
         axios.post(config.backendUrl + 'rest/auth/step-1', {
             tel: this.state.tel
         }).then(response => {
-            console.log(response.data);
+            //console.log(response.data);
+
             if (response.data.status === 2) {
-                window.localStorage.setItem('userId', response.data.id);
+                // window.localStorage.setItem('userId', response.data.id);
+                window.localStorage.setItem('user', JSON.stringify(response.data.user));
                 window.location = '/#/chats';
             } else {
                 // alert(response.data.code);
@@ -74,6 +74,8 @@ export default class Messages extends React.Component {
     }
 
     render() {
+
+
         return (
             <PageBottleBackground>
                 <div className="wrap-verif">
@@ -96,7 +98,7 @@ export default class Messages extends React.Component {
                     </div>
                 </div>
                 <div className="footer">
-                    Вход
+                    <Link to="/">Вход</Link>
                 </div>
             </PageBottleBackground>
         )

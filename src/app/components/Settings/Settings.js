@@ -4,23 +4,14 @@ import axios from 'axios';
 import Config from '../Config';
 
 import Avatar from 'material-ui/Avatar';
-import IconButton from 'material-ui/IconButton';
-import ContentCreate from 'material-ui/svg-icons/content/create';
-import AppBar from 'material-ui/AppBar';
-import Checkbox from 'material-ui/Checkbox';
 import TextField from 'material-ui/TextField';
-import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
-import FlatButton from 'material-ui/FlatButton';
-import RaisedButton from 'material-ui/RaisedButton';
 import DatePicker from 'material-ui/DatePicker';
-import UploadAvatar from 'material-ui/svg-icons/action/account-circle';
 import Divider from 'material-ui/Divider';
-import {List, ListItem} from 'material-ui/List';
 import ChevronRight from 'material-ui/svg-icons/navigation/chevron-right';
-import DropDownMenu from 'material-ui/DropDownMenu';
 
 import PanelTop from '../PanelTop';
 import NavigationBottom from '../NavigationBottom';
+
 
 const styles = {
     labelText: {
@@ -91,48 +82,76 @@ const styles = {
     }
 };
 
-const topPanelTitle = <span style={styles.titleStyle}>Настройки</span>;
-const PanelTopColLeft = <Link to="/chats" style={styles.leftCol}>Отмена</Link>;
-const PanelTopColRight = <Link to="/chats" style={styles.rightCol}>Готово</Link>;
+const topPanelTitle     = <span style={styles.titleStyle}>Настройки</span>;
+const PanelTopColLeft   = <Link to="/chats" style={styles.leftCol}>Отмена</Link>;
+const PanelTopColRight  = <Link to="/chats" style={styles.rightCol}>Готово</Link>;
 
 export default class Settings extends React.Component{
 
     constructor(props){
         super(props);
 
-        const defaultDate = new Date(1998, 7, 24);;
+        const config = new Config();
+
+        window.localStorage.setItem('process', 'setting');
+
+        let setting = window.localStorage.getItem('setting');
+
+        if (!setting) {
+
+            const defaultSetting = config.defaultSetting;
+
+            window.localStorage.setItem('whomSetting', JSON.stringify(defaultSetting));
+            setting = defaultSetting;
+        } else {
+            setting = JSON.parse(setting);
+        }
+
+        const defaultDate = new Date(1998, 7, 24);
 
         this.state = {
             defaultDate: defaultDate,
-            user: null
-        }
+            setting:     setting,
+            user:        null,
+            backendUrl:  config.backendUrl
+        };
 
         this.birthdayChangeHandle = this.birthdayChangeHandle.bind(this);
     }
 
-    componentDidMount(){
+    componentWillMount(){
         const config = new Config();
-        const userId = window.localStorage.getItem('userId');
+        const userFromStorage = JSON.parse(window.localStorage.getItem('user'));
 
-        this.checkSelectOptions(userId, data => {
-            window.localStorage.removeItem('settingSelectCountryId');
-            window.localStorage.removeItem('settingSelectCityId');
-            window.localStorage.removeItem('settingSelectGender');
+        this.checkSelectOptions(userFromStorage.id, data => {
+
+            let setting = this.state.setting;
+            let user    = this.state.user;
 
             axios({
                 method: 'get',
                 url: config.backendUrl + 'rest/user/',
                 resolveWithFullResponse: true,
                 params: {
-                    userId: userId
+                    userId: userFromStorage.id
                 }
-            }).then(data => {
-                console.log(data);
+            }).then(response => {
+
+                setting.country = response.data[0].country;
+                setting.city    = response.data[0].city;
+                setting.gender  = response.data[0].gender ? response.data[0].gender : 'Пол';
+
                 this.setState({
-                    user: data.data[0],
-                    defaultDate: new Date(data.data[0].birthday.date)
-                })
+                    user: response.data[0],
+                    setting: setting,
+                    defaultDate: new Date(response.data[0].birthday.date)
+                });
+
+                window.localStorage.setItem('setting', JSON.stringify(setting));
+
             }).catch(error => {
+
+                console.log('user error', error);
 
             });
         });
@@ -205,7 +224,7 @@ export default class Settings extends React.Component{
     }
 
     birthdayChangeHandle(e, date) {
-        const userId = window.localStorage.getItem('userId');
+        const user = JSON.parse(window.localStorage.getItem('user'));
         const config = new Config();
 
         this.setState({
@@ -217,7 +236,7 @@ export default class Settings extends React.Component{
             url: config.backendUrl + 'rest/user/',
             resolveWithFullResponse: true,
             params: {
-                userId: userId,
+                userId: user.id,
                 birthDay: date
             }
         }).then(data => {
@@ -228,7 +247,7 @@ export default class Settings extends React.Component{
     }
 
     genderChangeHandle(e, value) {
-        console.log(value);
+        //console.log(value);
         if (typeof e.target != 'undefined') {
             this.setState({
                 gender: value
@@ -237,6 +256,7 @@ export default class Settings extends React.Component{
     }
 
     render(){
+        console.log(this.state.user);
 
         if (this.state.user) {
             return (

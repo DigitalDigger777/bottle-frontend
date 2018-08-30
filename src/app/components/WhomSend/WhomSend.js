@@ -1,18 +1,16 @@
 import React, {Component} from 'react';
-import { Link } from 'react-router-dom';
 
 import IconButton from 'material-ui/IconButton';
-import AppBar from 'material-ui/AppBar';
-import TextField from 'material-ui/TextField';
-import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import Divider from 'material-ui/Divider';
-import ChevronRight from 'material-ui/svg-icons/navigation/chevron-right';
 import Toggle from 'material-ui/Toggle';
 import NavigateBefore from 'material-ui/svg-icons/image/navigate-before';
 
 import NavigationBottom from '../NavigationBottom';
 import PanelTop from '../PanelTop';
+
+import WhomSendSetting from './WhomSendSetting';
+import Config from '../Config';
 
 const styles = {
 
@@ -44,88 +42,97 @@ const topPanelTitle = "Кому отправим?";
 const PanelTopColLeft =<IconButton href="/#/chats"><NavigateBefore /></IconButton>;
 const PanelTopColRight=<IconButton></IconButton>;
 
-export class WhomSend extends React.Component {
+export default class WhomSend extends React.Component {
 
     constructor(props){
         super(props);
 
+        const config = new Config();
+
+        window.localStorage.setItem('process', 'whomSend');
+
+        let whomSetting = window.localStorage.getItem('whomSetting');
+
+        if (!whomSetting) {
+
+            const defaultWhomSetting = config.defaultWhomSetting;
+
+            window.localStorage.setItem('whomSetting', JSON.stringify(defaultWhomSetting));
+            whomSetting = defaultWhomSetting;
+
+        } else {
+            whomSetting = JSON.parse(whomSetting);
+        }
+
         this.state = {
-            country: window.localStorage.getItem('settingSelectCountry'),
-            city:    window.localStorage.getItem('settingSelectCity'),
-            gender:  window.localStorage.getItem('settingSelectGenderName'),
-            ageFrom: window.localStorage.getItem('ageFrom'),
-            ageTo:   window.localStorage.getItem('ageTo')
+            RandomUser: whomSetting.isRandom,
+            whomSetting: whomSetting,
+            config: config
         };
 
-        this.changeRedirect = this.changeRedirect.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.next = this.next.bind(this);
     }
 
-    changeRedirect() {
-        window.localStorage.setItem('settingRedirectUrl', '/#/whom-send');
+
+    handleChange(event, RandomUser){
+        let whomSetting = this.state.whomSetting;
+        whomSetting.isRandom = (RandomUser === 'true' || RandomUser === true);
+
+        this.setState({
+            RandomUser: RandomUser,
+            whomSetting: whomSetting
+        });
+
+        window.localStorage.setItem('whomSetting', JSON.stringify(whomSetting));
+    }
+
+    next() {
+        window.localStorage.setItem('sendMessageToStack', true);
     }
 
     render(){
-        return(
+
+        return (
             <div>
-                <Divider style={{width: '100%'}} />
-                <div className="input-row clearfix">
-                    <div className="col-60">
-                        <div className="my-label">
-                            Страна
+
+                <PanelTop title={topPanelTitle} colLeft={PanelTopColLeft} colRight={PanelTopColRight} />
+
+                <div className="wrap-content">
+                    <div>
+                        <Divider />
+                        <div className="group-input">
+                            <div className="input-row clearfix">
+                                <div className="col-60">
+                                    <div className="my-label">
+                                        Случайный пользователь
+                                    </div>
+                                </div>
+                                <div className="col-40 text-right" style={{paddingRight: 0}}>
+                                    <Toggle
+                                        defaultToggled={this.state.RandomUser}
+                                        onToggle={this.handleChange}
+                                        style={{marginTop: 12, marginBottom: 12, display: 'inline-block', width: 'auto'}}
+                                    />
+                                </div>
+                            </div>
+
+                            {this.state.RandomUser ? '' : <WhomSendSetting />}
+
+                            <div className="text-center"  style={{marginTop: '60px'}}>
+                                <RaisedButton
+                                    href="/#/whom-send/messages"
+                                    label="Далее"
+                                    primary={true}
+                                    style={styles.primaryButton}
+                                    onClick={ this.next }
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="col-40">
-                        <div className="text-right">
-                            <Link to="/settings/country" onClick={ this.changeRedirect }>{ this.state.country ? this.state.country : 'Страна'}</Link>
-                        </div>
-                        <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}} />
                     </div>
                 </div>
-                <Divider style={{width: '100%'}} />
-                <div className="input-row-city clearfix">
-                    <div className="col-40">
-                        <div className="my-label">
-                            Город
-                        </div>
-                    </div>
-                    <div className="col-60">
-                        <div className="text-right">
-                            <Link to="/settings/city" onClick={ this.changeRedirect }>{ this.state.city ? this.state.city : 'Город'}</Link>
-                        </div>
-                        <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}} />
-                    </div>
-                </div>
-                <Divider style={{width: '100%'}} />
-                <div className="input-row clearfix">
-                    <div className="col-60">
-                        <div className="my-label">
-                            Пол
-                        </div>
-                    </div>
-                    <div className="col-40">
-                        <div className="text-right">
-                            <Link to="/settings/gender" onClick={ this.changeRedirect }>{ this.state.gender ? this.state.gender : 'Мужской'}</Link>
-                        </div>
-                        <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}} />
-                    </div>
-                </div>
-                <Divider style={{width: '100%'}} />
-                <div className="input-row clearfix">
-                    <div className="col-60">
-                        <div className="my-label">
-                            Возраст
-                        </div>
-                    </div>
-                    <div className="col-40">
-                        <div className="text-right">
-                            <Link to="/settings/old">{this.state.ageFrom ? this.state.ageFrom : 18 }—{this.state.ageTo ? this.state.ageTo : 19 }</Link>
-                        </div>
-                        <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}} />
-                    </div>
-                </div>
-                <Divider style={{width: '100%'}} />
+                <NavigationBottom />
             </div>
-        );
+        )
     }
 }
-

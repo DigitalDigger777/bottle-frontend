@@ -1,13 +1,5 @@
 import React, {Component} from 'react';
-import { Link } from 'react-router-dom';
-
-import Avatar from 'material-ui/Avatar';
 import IconButton from 'material-ui/IconButton';
-import ContentCreate from 'material-ui/svg-icons/content/create';
-import FlatButton from 'material-ui/FlatButton';
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-import ErrorOutline from 'material-ui/svg-icons/alert/error-outline';
-import {List, ListItem} from 'material-ui/List';
 
 import Slider from 'material-ui/Slider';
 import NavigateBefore from 'material-ui/svg-icons/image/navigate-before';
@@ -46,7 +38,14 @@ export default class SelectOld extends React.Component{
     constructor(props){
         super(props);
 
+        const whomSetting = window.localStorage.getItem('whomSetting');
+        const setting = window.localStorage.getItem('setting');
+        const process = window.localStorage.getItem('process') ? window.localStorage.getItem('process') : 'whomSend';
+
         this.state = {
+            process:        process,
+            whomSetting:    JSON.parse(whomSetting),
+            setting:        JSON.parse(setting),
             ageFrom: 18,
             ageTo: 19
         };
@@ -58,12 +57,49 @@ export default class SelectOld extends React.Component{
     handleAgeFrom (event, value) {
         this.setState({ageFrom: value});
         this.setState({ageTo: value + 1});
-        window.localStorage.setItem('ageFrom', value);
+        //window.localStorage.setItem('ageFrom', value);
+
+        if (this.state.process == 'whomSend') {
+            let whomSendSetting = this.state.whomSetting;
+
+            whomSendSetting.age.from = value;
+            //whomSendSetting.country.name = name;
+
+            window.localStorage.setItem('whomSetting', JSON.stringify(whomSendSetting));
+        }
+
+        if (this.state.process == 'setting') {
+            let setting = this.state.setting;
+
+            setting.age.from   = value;
+            //setting.country.name = name;
+
+            window.localStorage.setItem('setting', JSON.stringify(setting));
+        }
+
     };
 
     handleAgeTo (event, value) {
         this.setState({ageTo: value});
-        window.localStorage.setItem('ageTo', value);
+        //window.localStorage.setItem('ageTo', value);
+
+        if (this.state.process == 'whomSend') {
+            let whomSendSetting = this.state.whomSetting;
+
+            whomSendSetting.age.to = value;
+            //whomSendSetting.country.name = name;
+
+            window.localStorage.setItem('whomSetting', JSON.stringify(whomSendSetting));
+        }
+
+        if (this.state.process == 'setting') {
+            let setting = this.state.setting;
+
+            setting.age.to   = value;
+            //setting.country.name = name;
+
+            window.localStorage.setItem('setting', JSON.stringify(setting));
+        }
     };
 
     render(){

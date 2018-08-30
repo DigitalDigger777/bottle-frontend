@@ -61,22 +61,21 @@ export default class ChatList extends React.Component
             chatSocketConnection: null,
             status: {
                 message: 'Please wait...'
-            }
+            },
+            user: JSON.parse(window.localStorage.getItem('user'))
         }
     }
 
     componentDidMount(){
         const config = new Config();
-        const userId = window.localStorage.getItem('userId');
 
         axios.get(config.backendUrl + 'rest/chat/', {
             params: {
-                userId: userId,
+                userId: this.state.user.id,
                 method: 'LIST'
             }
         })
             .then(response => {
-               console.log('ssss', response);
 
                if (typeof response.data.message == 'undefined') {
                    this.setState({

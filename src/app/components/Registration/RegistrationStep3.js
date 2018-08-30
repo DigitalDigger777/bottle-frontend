@@ -7,10 +7,8 @@ import Config from '../Config';
 import Checkbox from 'material-ui/Checkbox';
 import TextField from 'material-ui/TextField';
 import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
-import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import DatePicker from 'material-ui/DatePicker';
-import UploadAvatar from 'material-ui/svg-icons/action/account-circle';
 
 
 import PageBottleBackground from '../PageBottleBackground/PageBottleBackground';
@@ -81,7 +79,7 @@ export default class RegistrationStep3 extends React.Component{
             birthday: '',
             gender: 0,
             acceptTerms: 0,
-
+            user: JSON.parse(window.localStorage.getItem('user'))
         };
 
         this.nicknameChangeHandle       = this.nicknameChangeHandle.bind(this);
@@ -161,9 +159,9 @@ export default class RegistrationStep3 extends React.Component{
     next() {
 
         const config = new Config();
-        const userId = window.localStorage.getItem('userId');
+
         const userObject = {
-            userId: userId,
+            userId:         this.state.user.id,
             name:           this.state.name,
             nickname:       this.state.nickname,
             password:       this.state.password,
@@ -175,8 +173,9 @@ export default class RegistrationStep3 extends React.Component{
 
         console.log(userObject);
 
-        axios.post(config.backendUrl + 'rest/auth/step-3', userObject).then(data => {
-            console.log(data);
+        axios.post(config.backendUrl + 'rest/auth/step-3', userObject).then(response => {
+            // console.log(data);
+            window.localStorage.setItem('user', JSON.stringify(response.data.user));
             window.location = '/#/chats';
         }).catch(error => {
             console.log(error);

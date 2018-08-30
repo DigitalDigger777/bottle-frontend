@@ -85,10 +85,11 @@ export default class RegistrationStep2 extends React.Component {
 
         axios.post(config.backendUrl + 'rest/auth/step-2', {
             code: this.state.code
-        }).then(data => {
-            console.log(data.data);
+        }).then(response => {
+            // console.log(response.data);
+            window.localStorage.setItem('user', JSON.stringify(response.data.user));
             window.location = '/#/registration/enter-user-data';
-            window.localStorage.setItem('userId', data.data.userId);
+            //window.localStorage.setItem('userId', data.data.userId);
         }).catch(error => {
             console.log(error);
         });

@@ -1,20 +1,13 @@
 import React, {Component} from 'react';
-import { Link } from 'react-router-dom';
-import Config from '../Config';
 import axios from 'axios';
 
 import IconButton from 'material-ui/IconButton';
-import AppBar from 'material-ui/AppBar';
 import TextField from 'material-ui/TextField';
-import ChevronRight from 'material-ui/svg-icons/navigation/chevron-right';
 import Paper from 'material-ui/Paper';
-import ArrowUpward from 'material-ui/svg-icons/navigation/arrow-upward';
-import CameraAlt from 'material-ui/svg-icons/image/camera-alt';
-import NavigateBefore from 'material-ui/svg-icons/image/navigate-before';
 
 import PanelTop from '../PanelTop';
-import NavigationBottom from '../NavigationBottom';
 import MessagesContent from '../Messages/MessagesContent';
+import Config from '../Config';
 
 const styles = {
 
@@ -62,9 +55,7 @@ export default class Messages extends React.Component{
         super(props);
         //console.log(props);
 
-        this.handleChange       = this.handleChange.bind(this);
-        this.changeMessageText  = this.changeMessageText.bind(this);
-        this.sendMessage        = this.sendMessage.bind(this);
+        const config = new Config();
 
         this.state = {
             RandomUser:     false,
@@ -74,31 +65,40 @@ export default class Messages extends React.Component{
             content:        props.content,
             chatId:         props.chatId,
             messageText:    '',
-            items:          []
+            items:          [],
+            process:        window.localStorage.getItem('process'),
+            user:           JSON.parse(window.localStorage.getItem('user')),
+            whomSetting:    JSON.parse(window.localStorage.getItem('whomSetting')),
+            backendUrl:     config.backendUrl
         };
 
         if (typeof props.chatId !== 'undefined') {
             window.localStorage.setItem('chatId', props.chatId);
             window.localStorage.setItem('sendMessageToStack', false);
         }
+
+        this.handleChange       = this.handleChange.bind(this);
+        this.changeMessageText  = this.changeMessageText.bind(this);
+        this.sendMessage        = this.sendMessage.bind(this);
+        this.whomSendMessageProcess = this.whomSendMessageProcess.bind(this);
     }
 
-    componentDidMount(){
-        const config = new Config();
-        const userId = window.localStorage.getItem('userId');
+    componentWillMount() {
 
         axios({
             method: 'get',
-            url: config.backendUrl + 'rest/message/',
+            url: this.state.backendUrl + 'rest/message/',
             resolveWithFullResponse: true,
             params: {
-                userId: userId,
+                userId: this.state.user.id,
                 chatId: this.state.chatId,
                 method: 'LIST'
             }
         }).then(response => {
-            console.log(response.data);
-            this.setState({items: response.data})
+
+            if (typeof response.data.message == 'undefined') {
+                this.setState({items: response.data})
+            }
 
         }).catch(error => {
 
@@ -119,31 +119,29 @@ export default class Messages extends React.Component{
 
     sendMessage() {
         const config = new Config();
-        const sendMessageToStack = window.localStorage.getItem('sendMessageToStack');
+        //const sendMessageToStack = window.localStorage.getItem('sendMessageToStack');
 
-        if (sendMessageToStack === null || sendMessageToStack === 'false') {
+        if (this.state.process != 'whomSend') {
             axios.post(config.backendUrl + 'rest/message/', {
                 message: this.state.messageText,
-                userId: window.localStorage.getItem('userId'),
+                userId: this.state.user.id,
                 chatId: this.state.chatId
             }).then(response => {
-                console.log('mmm', response);
-
-                const userId = window.localStorage.getItem('userId');
 
                 axios({
                     method: 'get',
                     url: config.backendUrl + 'rest/message/',
                     resolveWithFullResponse: true,
                     params: {
-                        userId: userId,
+                        userId: this.state.user.id,
                         chatId: this.state.chatId,
                         method: 'LIST'
                     }
                 }).then(response => {
-                    console.log(response.data);
-                    this.setState({items: response.data})
 
+                    this.setState({
+                        items: response.data
+                    })
 
                 }).catch(error => {
 
@@ -154,34 +152,51 @@ export default class Messages extends React.Component{
 
             });
         } else {
-            let params = {};
-            const isRandom = window.localStorage.getItem('isRandom');
-
-            if (isRandom !== null && isRandom === 'true') {
-                params.message  = this.state.messageText;
-                params.userId   = window.localStorage.getItem('userId');
-                params.isRandom = true;
-            } else {
-                params.message  = this.state.messageText;
-                params.userId   = window.localStorage.getItem('userId');
-                params.country  = window.localStorage.getItem('settingSelectCountry');
-                params.city     = window.localStorage.getItem('settingSelectCity');
-                params.gender   = window.localStorage.getItem('settingSelectGenderName') == 'Мужской' ? 0 : 1;
-                params.ageFrom  = window.localStorage.getItem('ageFrom');
-                params.ageTo    = window.localStorage.getItem('ageTo');
-                params.isRandom = false;
-            }
-
-            axios.post(config.backendUrl + 'rest/message-stack/ ', params).then(response => {
-                console.log(response);
-                //window.location.reload();
-            }).catch(error => {
-
+            this.whomSendMessageProcess();
+            this.setState({
+                messageText: ''
             });
         }
     }
 
+    whomSendMessageProcess() {
+        let params = {};
+
+        //const isRandom    = window.localStorage.getItem('isRandom');
+
+        if (this.state.whomSetting.isRandom) {
+            params.message  = this.state.messageText;
+            params.userId   = this.state.user.id;
+            params.isRandom = true;
+        } else {
+
+            params.message  = this.state.messageText;
+            params.userId   = this.state.user.id;
+            params.country  = this.state.whomSetting.country.name;
+            params.city     = this.state.whomSetting.city.name;
+            params.gender   = this.state.whomSetting.gender.id;
+            params.ageFrom  = this.state.whomSetting.age.from;
+            params.ageTo    = this.state.whomSetting.age.to;
+            params.isRandom = this.state.whomSetting.isRandom;
+        }
+
+        axios.post(this.state.backendUrl + 'rest/message-stack/ ', params).then(response => {
+            // console.log(response);
+
+            let items = this.state.items;
+            items.push(response.data.messageStack);
+
+            this.setState({
+                items: items
+            });
+            //window.location.reload();
+        }).catch(error => {
+
+        });
+    }
+
     render(){
+        // console.log(this.state.items);
 
         if (this.state.items.length == 0) {
             return (
@@ -200,6 +215,7 @@ export default class Messages extends React.Component{
                             hintStyle={styles.labelText}
                             inputStyle={styles.input}
                             onChange={this.changeMessageText}
+                            value={this.state.messageText}
                         />
                         <IconButton className="btn-circle" onClick={this.sendMessage}><i className="material-icons">arrow_upward</i></IconButton>
 
@@ -230,6 +246,7 @@ export default class Messages extends React.Component{
                             hintStyle={styles.labelText}
                             inputStyle={styles.input}
                             onChange={this.changeMessageText}
+                            value={this.state.messageText}
                         />
                         <IconButton className="btn-circle" onClick={this.sendMessage}>
                             <i className="material-icons">arrow_upward</i>

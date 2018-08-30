@@ -23,7 +23,7 @@ export default class MessagesContent extends React.Component{
             width: window.innerWidth,
             height: window.innerHeight,
             message: props.message,
-            userId: window.localStorage.getItem('userId')
+            user: JSON.parse(window.localStorage.getItem('user'))
         };
         this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
         //console.log(this.state.message.user.id);
@@ -76,7 +76,7 @@ export default class MessagesContent extends React.Component{
 
         return (
 
-                <div className={ this.state.message.user.id == this.state.userId ? `msg-in` : 'msg-out' } >
+                <div className={ this.state.message.user.id == this.state.user.id ? `msg-in` : 'msg-out' } >
                     <div className="msg-body">
                         <div style={{overflow: 'hidden'}}>
                             <div className="clearfix" style={{width: this.state.width + 240}}>
@@ -98,8 +98,8 @@ export default class MessagesContent extends React.Component{
                             </div>
                         </div>
                     </div>
-                    <div className={this.state.message.user.id == this.state.userId ? `msg-footer` : `msg-footer text-right`}>
-                        29 марта, 11:30
+                    <div className={this.state.message.user.id == this.state.user.id ? `msg-footer` : `msg-footer text-right`}>
+                        {this.state.message.formatDate}
                     </div>
 
                     {/*<div className="msg-out">*/}
