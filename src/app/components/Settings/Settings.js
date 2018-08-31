@@ -139,7 +139,10 @@ export default class Settings extends React.Component{
 
                 setting.country = response.data[0].country;
                 setting.city    = response.data[0].city;
-                setting.gender  = response.data[0].gender ? response.data[0].gender : 'Пол';
+                setting.gender  = {
+                    id: response.data[0].gender,
+                    name: response.data[0].gender === 0 ? 'Мужской' : 'Женский'
+                } ;
 
                 this.setState({
                     user: response.data[0],
@@ -257,6 +260,25 @@ export default class Settings extends React.Component{
 
     render(){
         console.log(this.state.user);
+        const gender    = this.state.user ? this.state.user.gender : null;
+        const country   = this.state.user ? this.state.user.country : null;
+        const city      = this.state.user ? this.state.user.city : null;
+
+        let genderTag   = <Link to="/settings/gender">{gender === 0 ? 'Мужской' : 'Женский'}</Link>
+        let countryTag  = <Link to="/settings/country">{country ? this.state.user.country.name : 'Страна'}</Link>;
+        let cityTag     = <Link to="/settings/city">{city ? this.state.user.city.name : 'Город'}</Link>;
+
+        if (gender === null) {
+            genderTag = <Link to="/settings/gender">Выбрать</Link>
+        }
+
+        if (country === null) {
+            countryTag = <Link to="/settings/country">Выбрать</Link>;
+        }
+
+        if (city === null) {
+            cityTag = <Link to="/settings/city">Выбрать</Link>;
+        }
 
         if (this.state.user) {
             return (
@@ -317,7 +339,7 @@ export default class Settings extends React.Component{
                                     </div>
                                     <div className="col-40">
                                         <div className="text-right">
-                                            <Link to="/settings/gender">{this.state.user.gender === 0 ? 'Мужской' : 'Женский'}</Link>
+                                            {genderTag}
                                         </div>
                                         <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}}/>
                                     </div>
@@ -331,7 +353,7 @@ export default class Settings extends React.Component{
                                     </div>
                                     <div className="col-40">
                                         <div className="text-right">
-                                            <Link to="/settings/country">{this.state.user.country ? this.state.user.country.name : 'Страна'}</Link>
+                                            {countryTag}
                                         </div>
                                         <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}}/>
                                     </div>
@@ -345,7 +367,7 @@ export default class Settings extends React.Component{
                                     </div>
                                     <div className="col-60">
                                         <div className="text-right">
-                                            <Link to="/settings/city">{this.state.user.city ? this.state.user.city.name : 'Город'}</Link>
+                                            {cityTag}
                                         </div>
                                         <ChevronRight style={{position: 'absolute', right: '0', top: '12px'}}/>
                                     </div>

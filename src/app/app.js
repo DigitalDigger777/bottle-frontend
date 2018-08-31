@@ -15,7 +15,6 @@ import Chats from './components/Chats/Chats';
 import ChatMessages from './components/Chats/ChatMessages';
 import Settings from './components/Settings/Settings';
 import WhomSend from './components/WhomSend/WhomSend';
-import WhomSendRandomUser from './components/WhomSend/WhomSendRandomUser';
 import WhomSendMessages from './components/WhomSend/WhomSendMessages';
 import Messages from './components/Messages/Messages';
 import ReceiveMessage from './components/ReceiveMessage/ReceiveMessage';
@@ -25,6 +24,7 @@ import SelectGender from './components/Settings/SelectGender';
 import SelectCity from './components/Settings/SelectCity';
 import SelectCountry from './components/Settings/SelectCountry';
 import SelectOld from './components/Settings/SelectOld';
+import Login from './components/Login/Login';
 
 import "../www/style.less";
 
@@ -39,7 +39,10 @@ export default class Index extends React.Component {
                 <MuiThemeProvider>
                     <HashRouter history={hashHistory}>
                         <div>
-                            <Route exact path="/" component={RegistrationStep1}></Route>
+                            <Route exact path="/" component={Login}></Route>
+
+                            <Route exact path="/registration" component={RegistrationStep1}></Route>
+
                             <Route exact path="/registration/enter-code" component={RegistrationStep2}></Route>
                             <Route exact path="/registration/enter-code/:code" component={RegistrationStep2}></Route>
 
@@ -49,8 +52,7 @@ export default class Index extends React.Component {
                             <Route exact path="/chats/messages/:chatId" component={ChatMessages}></Route>
                             <Route exact path="/settings" component={Settings}></Route>
 
-                            <Route exact path="/whom-send" component={WhomSendRandomUser}></Route>
-                            <Route exact path="/whom-send-random" component={WhomSendRandomUser}></Route>
+                            <Route exact path="/whom-send" component={WhomSend}></Route>
                             <Route exact path="/whom-send/messages" component={WhomSendMessages}></Route>
                             <Route exact path="/receive-message-no-message" component={ReceiveMessageNoMessage}></Route>
                             <Route exact path="/receive-message" component={ReceiveMessage}></Route>

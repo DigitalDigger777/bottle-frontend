@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import axios from 'axios';
+import Config from '../Config';
 import IconButton from 'material-ui/IconButton';
 import {List, ListItem} from 'material-ui/List';
 import NavigateBefore from 'material-ui/svg-icons/image/navigate-before';
@@ -40,11 +42,14 @@ export default class selectGender extends React.Component{
         const whomSetting = window.localStorage.getItem('whomSetting');
         const setting = window.localStorage.getItem('setting');
         const process = window.localStorage.getItem('process') ? window.localStorage.getItem('process') : 'whomSend';
+        const user = window.localStorage.getItem('user');
 
         this.state = {
             process:        process,
             whomSetting:    JSON.parse(whomSetting),
-            setting:        JSON.parse(setting)
+            setting:        JSON.parse(setting),
+            config:         new Config(),
+            user:           JSON.parse(user)
         };
 
         this.selectGender = this.selectGender.bind(this);
@@ -65,10 +70,25 @@ export default class selectGender extends React.Component{
         if (this.state.process == 'setting') {
             let setting = this.state.setting;
 
+            if (setting.gender === null) {
+                setting.gender = {id: 0, name: ''};
+            }
+
             setting.gender.id   = gender;
             setting.gender.name = name;
 
-            window.localStorage.setItem('setting', JSON.stringify(setting));
+            axios.put(this.state.config.backendUrl + 'rest/user/', {
+                userId: this.state.user.id,
+                gender: gender
+            })
+                .then(response => {
+
+                    window.localStorage.setItem('setting', JSON.stringify(setting));
+
+                })
+                .catch(error => {
+                    console.log(error);
+                });
         }
 
         if (!settingRedirectUrl) {
@@ -87,8 +107,8 @@ export default class selectGender extends React.Component{
 
                 <div className="wrap-content">
                     <List className="select-list">
-                        <ListItem primaryText="Мужской" onClick={ (gender) => this.selectGender(0, "Мужской")}/>
-                        <ListItem primaryText="Женский" onClick={ (gender) => this.selectGender(1, "Женский")} />
+                        <ListItem primaryText="Мужской" onClick={ (gender, name) => this.selectGender(0, "Мужской")}/>
+                        <ListItem primaryText="Женский" onClick={ (gender, name) => this.selectGender(1, "Женский")} />
                     </List>
                 </div>
 

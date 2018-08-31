@@ -43,12 +43,15 @@ export default class SelectCity extends React.Component{
         const whomSetting = window.localStorage.getItem('whomSetting');
         const setting = window.localStorage.getItem('setting');
         const process = window.localStorage.getItem('process') ? window.localStorage.getItem('process') : 'whomSend';
+        const user = window.localStorage.getItem('user');
 
         this.state = {
             process:        process,
             whomSetting:    JSON.parse(whomSetting),
             setting:        JSON.parse(setting),
-            items:          []
+            items:          [],
+            config:         new Config(),
+            user:           JSON.parse(user)
         };
 
         this.selectCity = this.selectCity.bind(this);
@@ -88,10 +91,25 @@ export default class SelectCity extends React.Component{
         if (this.state.process == 'setting') {
             let setting = this.state.setting;
 
+            if (setting.city === null) {
+                setting.city = {id:0, name:''};
+            }
+
             setting.city.id   = cityId;
             setting.city.name = name;
 
-            window.localStorage.setItem('setting', JSON.stringify(setting));
+            axios.put(this.state.config.backendUrl + 'rest/user/', {
+                userId: this.state.user.id,
+                cityId: cityId
+            })
+                .then(response => {
+                    console.log(response);
+                    window.localStorage.setItem('setting', JSON.stringify(setting));
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+
         }
 
         if (!settingRedirectUrl) {
